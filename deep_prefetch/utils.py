@@ -10,10 +10,12 @@ def _prefetch_related_objects(self):
                                   self._prefetch_related_lookups)
     self._prefetch_done = True
 
+
 class DeepPrefetchQuerySetMixin(object):
     pass
 
 DeepPrefetchQuerySetMixin._prefetch_related_objects = _prefetch_related_objects
+
 
 class DeepPrefetchQuerySet(QuerySet):
     pass
@@ -21,7 +23,7 @@ class DeepPrefetchQuerySet(QuerySet):
 DeepPrefetchQuerySet._prefetch_related_objects = _prefetch_related_objects
 
 
-def get_query_set(self):
+def get_queryset(self):
     return DeepPrefetchQuerySet(self.model, using=self.db)
 
 
@@ -29,11 +31,10 @@ class DeepPrefetchManagerMixin(object):
     pass
 
 
-DeepPrefetchManagerMixin.get_query_set = get_query_set
+DeepPrefetchManagerMixin.get_queryset = get_queryset
+
 
 class DeepPrefetchManager(Manager):
     pass
 
-DeepPrefetchManager.get_query_set = get_query_set
-
-
+DeepPrefetchManager.get_queryset = get_queryset

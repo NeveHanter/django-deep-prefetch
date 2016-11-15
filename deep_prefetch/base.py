@@ -3,12 +3,11 @@ from collections import defaultdict
 from django.db.models import Model
 from django.db.models.base import ModelBase
 from django.db.models.query import get_prefetcher
-from django.db.models.sql.constants import LOOKUP_SEP
-from itertools import chain, imap, islice, ifilter
+from django.db.models.constants import LOOKUP_SEP
+from itertools import chain
 from operator import itemgetter
 from collections import OrderedDict
 import re
-from types import NoneType
 
 __author__ = 'Andrew Pashkin <andrew.pashkin@gmx.co.uk>'
 
@@ -59,7 +58,7 @@ def tail(iterable):
     return drop(1, iterable)
 
 def init(iterable):
-    return islice(iterable, len(iterable)-1)
+    return slice(iterable, len(iterable)-1)
 
 def last(iterable):
     try:
@@ -69,7 +68,7 @@ def last(iterable):
 
 def drop(n, iterable):
     """Drops `n`th element."""
-    return islice(iterable, n)
+    return slice(iterable, n)
 
 def put(o, container):
     yield o
@@ -81,7 +80,7 @@ def concat(iterable):
     return chain.from_iterable(iterable)
 
 def find(func, iterable):
-    return head(ifilter(func, iterable))
+    return head(filter(func, iterable))
 
 
 def update_buffer(buffer, objects, lookups):
@@ -114,7 +113,10 @@ def set_cache(obj, single, cache, cache_name, attr):
     if single and cache:
         obj.__dict__.update({cache_name: cache[0]})
     elif not single:
-        cache_qs = getattr(obj, attr).all()
+        try:
+            cache_qs = getattr(obj, attr).all()
+        except AttributeError:
+            return
         cache_qs._result_cache = cache
         cache_qs._prefetch_done = True
         setdefaultattr(obj, '_prefetched_objects_cache', {}).update(
@@ -303,8 +305,8 @@ def deep_prefetch_related_objects(objects, lookups):
 
         if current:
             prefetch_qs, rel_attr_fn, cur_attr_fn, single, cache_name =       \
-            prefetcher.get_prefetch_query_set(
-                map(itemgetter(1), current)
+            prefetcher.get_prefetch_queryset(
+                list(map(itemgetter(1), current))
             )
 
             #prefetch lookups from prefetch queries are merged into processing.
