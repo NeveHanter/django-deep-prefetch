@@ -9,7 +9,7 @@ from operator import itemgetter
 from collections import OrderedDict
 import re
 
-__author__ = 'Andrew Pashkin <andrew.pashkin@gmx.co.uk>'
+__author__ = 'Andrew Pashkin <andrew.pashkin@gmx.co.uk>, Kamil Bar <nevehanter@gmail.com>'
 
 
 DESCRIPTORS = {
@@ -98,6 +98,7 @@ def get_info(prefetcher, descriptor):
     cache_name = info['cache_attr'](prefetcher, descriptor)
     return single, cache_name
 
+
 def get_cache(obj, single, cache_name, attr):
     try:
         if single:
@@ -109,23 +110,24 @@ def get_cache(obj, single, cache_name, attr):
     except KeyError:
         raise ValueError
 
+
 def set_cache(obj, single, cache, cache_name, attr):
     if single and cache:
         obj.__dict__.update({cache_name: cache[0]})
     elif not single:
-        try:
-            cache_qs = getattr(obj, attr).all()
-        except AttributeError:
+        cache_qs = getattr(obj, attr, None)
+        if not cache_qs:
             return
+
+        cache_qs = cache_qs.all()
         cache_qs._result_cache = cache
         cache_qs._prefetch_done = True
         setdefaultattr(obj, '_prefetched_objects_cache', {}).update(
             {cache_name: cache_qs})
 
+
 def tree():
     return defaultdict(tree)
-
-
 
 
 class DefaultOrderedDict(OrderedDict):

@@ -56,7 +56,7 @@ root directory.
 
 Compatibility
 -------------
-Currently project is tested and compatible with Python 2.7 and Django 1.4.10.
+Currently project compatible with Python 3.5 and Django 1.8.16.
 
 .. _custom manager: https://docs.djangoproject.com/en/1.4/topics/db/managers/#custom-managers
 .. _tox: https://pypi.python.org/pypi/tox
