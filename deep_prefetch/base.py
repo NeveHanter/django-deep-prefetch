@@ -1,13 +1,10 @@
 # coding=utf-8
 from collections import defaultdict
-from django.db.models import Model
-from django.db.models.base import ModelBase
 from django.db.models.query import get_prefetcher
 from django.db.models.constants import LOOKUP_SEP
 from itertools import chain
 from operator import itemgetter
 from collections import OrderedDict
-import re
 
 __author__ = 'Andrew Pashkin <andrew.pashkin@gmx.co.uk>, Kamil Bar <nevehanter@gmail.com>'
 
@@ -306,26 +303,28 @@ def deep_prefetch_related_objects(objects, lookups):
         current -= to_discard
 
         if current:
-            prefetch_qs, rel_attr_fn, cur_attr_fn, single, cache_name =       \
-            prefetcher.get_prefetch_queryset(
-                list(map(itemgetter(1), current))
-            )
+            prefetch_qs, rel_attr_fn, cur_attr_fn, single, cache_name = \
+                prefetcher.get_prefetch_queryset(
+                    list(map(itemgetter(1), current))
+                )
 
-            #prefetch lookups from prefetch queries are merged into processing.
-            additional_lookups = getattr(prefetch_qs,
-                                         '_prefetch_related_lookups', [])
+            # Prefetch lookups from prefetch queries are merged
+            # with processed lookups.
+            additional_lookups = getattr(
+                prefetch_qs, '_prefetch_related_lookups', [])
 
             if additional_lookups:
                 setattr(prefetch_qs, '_prefetch_related_lookups', [])
             discovered = list(prefetch_qs)
-            lookups_for_discovered = additional_lookups
-            clipped_lookup = LOOKUP_SEP.join(lookup.split(LOOKUP_SEP)[1:])
-            if len(clipped_lookup) > 0:
-                lookups_for_discovered = chain([clipped_lookup],
-                                               additional_lookups)
-            if lookups_for_discovered:
-                update_buffer(buffer, discovered, reversed(list(lookups_for_discovered)))
-
+            if discovered:
+                lookups_for_discovered = additional_lookups
+                clipped_lookup = LOOKUP_SEP.join(lookup.split(LOOKUP_SEP)[1:])
+                if len(clipped_lookup) > 0:
+                    lookups_for_discovered = chain([clipped_lookup],
+                                                   additional_lookups)
+                if lookups_for_discovered:
+                    reversed_lookups = reversed(list(lookups_for_discovered))
+                    update_buffer(buffer, discovered, reversed_lookups)
 
             rel_to_cur = defaultdict(list)
 
